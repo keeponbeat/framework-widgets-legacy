@@ -7,7 +7,7 @@ This is the widgets 2.0 Framework for Corona SDK. It contains all the assets, so
 
 ## Documentation
 
-For documentation, please check the [Corona Documentation](http://docs.coronalabs.com/)
+For documentation, please check the [Corona Documentation](http://docs.coronalabs.com/api/library/widget/index.html)
 
 ## Sample Code
 
