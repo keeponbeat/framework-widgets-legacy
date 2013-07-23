@@ -130,10 +130,10 @@ local function initWithSprite( stepper, options )
 	-------------------------------------------------------
 	
 	-- Assign to the view
-	view._timerIncrementSpeed = 1000
+	view._timerIncrementSpeed = opt.timerIncrementSpeed or 1000
 	view._changeIncrementSpeedAtTime = view._timerIncrementSpeed
 	view._increments = 0
-	view._changeSpeedAtIncrement = 5
+	view._changeSpeedAtIncrement = opt.changeSpeedAtIncrement or 5
 	view._timer = nil
 	view._minimumValue = opt.minimumValue
 	view._maximumValue = opt.maximumValue
@@ -161,6 +161,8 @@ local function initWithSprite( stepper, options )
 	-- Assign objects to the stepper
 	stepper._imageSheet = imageSheet
 	stepper._view = view
+	
+	-- 
 	
 	----------------------------------------------------------
 	--	PUBLIC METHODS	
@@ -419,6 +421,8 @@ function M.new( options, theme )
 	opt.maximumValue = customOptions.maximumValue or mHuge
 	opt.onPress = customOptions.onPress
 	opt.onHold = customOptions.onHold
+	opt.timerIncrementSpeed = customOptions.timerIncrementSpeed or 1000
+	opt.changeSpeedAtIncrement = customOptions.changeSpeedAtIncrement or 5
 	
 	-- Frames & Images
 	opt.sheet = customOptions.sheet

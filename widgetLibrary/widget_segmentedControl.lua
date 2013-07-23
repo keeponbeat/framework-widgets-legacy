@@ -65,6 +65,7 @@ local function initWithImage( segmentedControl, options )
 	
 	-- The view is the segmentedControl (group)
 	view = segmentedControl
+	view._segmentWidth = M.segmentWidth
 	
 	-- Create the sequenceData table
 	local leftSegmentOptions = 
@@ -142,7 +143,7 @@ local function initWithImage( segmentedControl, options )
 	segmentLabels = {}
 	segmentDividers = {}
 	
-	local overallControlWidth = ( opt.segmentWidth * #segments )
+	local overallControlWidth = ( view._segmentWidth * #segments )
 	local segmentWidth = overallControlWidth / #segments
 	
 	-- The left segment edge
@@ -250,12 +251,24 @@ local function initWithImage( segmentedControl, options )
 			-- Loop through the segments
 			for i = 1, self._totalSegments do
 				local segmentedControlXPosition = self.x - ( self.contentWidth * 0.5 )
+
 				local currentSegment = i
 				local segmentWidth = self._segmentWidth
 				
 				-- Work out the current segments position
-				local currentSegmentLeftEdge = ( segmentedControlXPosition * 0.5 ) * currentSegment
-				local currentSegmentRightEdge = segmentedControlXPosition + ( segmentWidth * currentSegment )
+
+				local parentOffsetX = 0
+
+				-- First, we check if the widget is in a group
+				if nil ~= self.parent and nil ~= self.parent.x then
+				    parentOffsetX = self.parent.x
+			    end
+			
+				--local currentSegmentLeftEdge = ( segmentedControlXPosition * 0.5 ) * currentSegment + parentOffsetX
+				--local currentSegmentRightEdge = segmentedControlXPosition + ( segmentWidth * currentSegment ) + parentOffsetX
+
+                local currentSegmentLeftEdge = segmentedControlXPosition + ( segmentWidth * currentSegment ) - segmentWidth + parentOffsetX
+                local currentSegmentRightEdge = segmentedControlXPosition + ( segmentWidth * currentSegment ) + parentOffsetX	
 				
 				-- If the touch is within the segments range
 				if event.x >= currentSegmentLeftEdge and event.x <= currentSegmentRightEdge then
@@ -302,7 +315,7 @@ local function initWithImage( segmentedControl, options )
 		-- Turn on the left segment
 		self._leftSegment:setSequence( "leftSegmentOn" )
 		-- Set the over segment's width
-		segmentOver.width = opt.segmentWidth - self._leftSegment.width - 0.5
+		segmentOver.width = view._segmentWidth - self._leftSegment.width - 0.5
 		-- Set the over segment's position
 		segmentOver.x = self._leftSegment.x + self._leftSegment.width * 0.5 + segmentOver.width * 0.5
 		
@@ -320,7 +333,7 @@ local function initWithImage( segmentedControl, options )
 		-- Turn on the right segment
 		self._rightSegment:setSequence( "rightSegmentOn" )
 		-- Set the over segment's width
-		segmentOver.width = opt.segmentWidth - self._rightSegment.width - 0.5
+		segmentOver.width = view._segmentWidth - self._rightSegment.width - 0.5
 		-- Set the over segment's position
 		segmentOver.x = self._rightSegment.x - self._rightSegment.width - segmentOver.width * 0.5 - self._segmentDividers[#self._segmentDividers].width * 0.5
 	
@@ -398,7 +411,7 @@ function M.new( options, theme )
 	opt.id = customOptions.id
 	opt.baseDir = customOptions.baseDir or system.ResourceDirectory
 	opt.segments = customOptions.segments or { "One", "Two" }
-	opt.segmentWidth = customOptions.segmentWidth or 50
+	M.segmentWidth = customOptions.segmentWidth or 50
 	opt.defaultSegment = customOptions.defaultSegment or 1
 	opt.labelSize = customOptions.labelSize or 12
 	opt.labelFont = customOptions.labelFont or native.systemFont

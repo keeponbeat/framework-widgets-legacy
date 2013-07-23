@@ -143,6 +143,10 @@ local function createScrollView( scrollView, options )
 	view._scrollHeight = opt.scrollHeight
 	view._trackVelocity = false	
 	view._updateRuntime = false
+	
+	-- assign the threshold values to the momentum
+	_momentumScrolling.scrollStopThreshold = opt.scrollStopThreshold
+	_momentumScrolling.isBounceEnabled = opt.isBounceEnabled
 			
 	-------------------------------------------------------
 	-- Assign properties/objects to the scrollView
@@ -234,7 +238,43 @@ local function createScrollView( scrollView, options )
 		-- Send a touch event to the view
 		self._view:touch( newEvent )
 	end
-	
+		
+	function scrollView:setScrollWidth( newValue )
+		
+		-- adjust the scrollview scroll width
+		timer.performWithDelay( 2, function()
+			self._view._scrollWidth = newValue or self._view._scrollWidth
+		end )
+				
+	end
+
+	function scrollView:setScrollHeight( newValue )
+		
+		-- adjust the scrollview scroll height
+		timer.performWithDelay( 2, function()
+			self._view._scrollHeight = newValue or self._view._scrollHeight
+		end )
+				
+		-- Recreate the scrollBar
+		if not opt.hideScrollBar then
+			if self._view._scrollBar then
+				display.remove( self._view._scrollBar )
+				self._view._scrollBar = nil
+			end
+			
+			if not self._view._isLocked then
+				-- Need a delay here also..
+				timer.performWithDelay( 2, function()
+					--[[
+					Currently only vertical scrollBar's are provided, so don't show it if they can't scroll vertically
+					--]]								
+					if not self._view._isVerticalScrollingDisabled and self._view._scrollHeight > self._view._height then
+						self._view._scrollBar = _momentumScrolling.createScrollBar( self._view, opt.scrollBarOptions )
+					end
+				end)
+			end
+		end	
+	end
 	
 	----------------------------------------------------------
 	--	PRIVATE METHODS	
@@ -496,6 +536,11 @@ function M.new( options )
 	opt.scrollHeight = customOptions.scrollHeight or opt.height
 	opt.hideScrollBar = customOptions.hideScrollBar or false
 	opt.isLocked = customOptions.isLocked or false
+	opt.scrollStopThreshold = customOptions.scrollStopThreshold or 250
+	opt.isBounceEnabled = true
+	if nil ~= customOptions.isBounceEnabled and customOptions.isBounceEnabled == false then 
+	    opt.isBounceEnabled = false
+	end
 	
 	-- Set the scrollView to locked if both horizontal and vertical scrolling are disabled
 	if opt.isHorizontalScrollingDisabled and opt.isVerticalScrollingDisabled then
@@ -516,13 +561,18 @@ function M.new( options )
 	end
 	
 	-- ScrollBar options
-	opt.scrollBarOptions =
-	{
-		sheet = customOptions.sheet,
-		topFrame = customOptions.topFrame,
-		middleFrame = customOptions.middleFrame,
-		bottomFrame = customOptions.bottomFrame,
-	}
+	if nil ~= customOptions.scrollBarOptions then
+	    opt.scrollBarOptions =
+	    {
+		    sheet = customOptions.scrollBarOptions.sheet,
+		    topFrame = customOptions.scrollBarOptions.topFrame,
+		    middleFrame = customOptions.scrollBarOptions.middleFrame,
+		    bottomFrame = customOptions.scrollBarOptions.bottomFrame,
+	    }
+	else
+	    opt.scrollBarOptions = {}
+	end
+
 			
 	-------------------------------------------------------
 	-- Create the scrollView

@@ -143,6 +143,7 @@ local function initWithImage( progressView, options )
 	-- Offsets
 	view._fillXOffset = opt.fillXOffset
 	view._fillYOffset = opt.fillYOffset
+	view._fillOuterWidth = opt.fillOuterWidth
 	
 	-------------------------------------------------------
 	-- Assign properties/objects to the progressView
@@ -203,6 +204,8 @@ local function initWithImage( progressView, options )
 			end
 			
 			-- While the progress is less than the user specified progress, increase by 0.01
+			if view._currentProgress < progress then
+			-- if we increase the progress 
 			while view._currentProgress < progress do
 				local hasReachedLimit = view._currentProgress > 1.01  and view._currentPercent >0
 				local noLimit = view._currentProgress < 0.01
@@ -215,6 +218,27 @@ local function initWithImage( progressView, options )
 					-- Set the current fill %
 					view._currentPercent = ( availableMoveSpace / rangeFactor ) * ( view._currentProgress * rangeFactor )
 				end
+				
+			end
+			
+			else
+			    -- if we decrease the progress 
+			    while view._currentProgress >= progress do
+			    
+				local hasReachedLimit = view._currentProgress > 1.01  and view._currentPercent >0
+				local noLimit = view._currentProgress < 0.01
+			
+				-- Increment the current progress
+				view._currentProgress = view._currentProgress - 0.01
+			
+				-- If we haven't reached the limit yet (1.0) increase the fill
+				if not hasReachedLimit then
+					-- Set the current fill %
+					view._currentPercent = ( availableMoveSpace / rangeFactor ) * ( view._currentProgress * rangeFactor )
+				end
+				
+			    end
+			    
 			end
 			
 			-- If the fill is animated
@@ -228,6 +252,7 @@ local function initWithImage( progressView, options )
 				view._fillRight.x = mFloor( view._fillLeft.x + view._currentPercent + view._fillRight.contentWidth * 0.5  )
 			end
 		end
+		
  	end
 
 	-- Function to get the progressView's current progress
@@ -249,10 +274,32 @@ local function initWithImage( progressView, options )
 		-- Set the ImageSheet to nil
 		self._imageSheet = nil
 	end
+
+	-- Resizes a existing progressView
+	function progressView:resizeView( newWidth )
+	
+		local view = self
+	
+		-- OUTER MIDDLE
+		view._outerMiddle.width = ( newWidth - ( view._fillOuterWidth * 2 ) )
+		view._outerMiddle.x = view._outerLeft.x + ( ( view._outerLeft.contentWidth * 0.5 ) + ( view._outerMiddle.width * 0.5 ) )
+	
+		-- Set the right fills position
+		view._fillRight.x = view._fillLeft.x + view._fillMiddle.width + ( view._fillRight.contentWidth * 0.5 )
+	
+		-- OUTER RIGHT
+		view._outerRight.x = view._outerMiddle.x + ( view._outerMiddle.contentWidth * 0.5 ) + ( view._outerRight.contentWidth * 0.5 )
+
+		-- recalculate the properties
+		rangeFactor = 100
+		availableMoveSpace = ( newWidth - ( view._fillOuterWidth ) ) - ( view._fillXOffset * 2 )
+		moveFactor = availableMoveSpace / rangeFactor
+		currentPercent = ( availableMoveSpace / rangeFactor ) * ( rangeFactor )
+
+	end
 			
 	return progressView
 end
-
 
 -- Function to create a new progressView object ( widget.newProgressView )
 function M.new( options, theme )	

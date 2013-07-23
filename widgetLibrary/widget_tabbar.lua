@@ -95,6 +95,7 @@ local function initWithImageFiles( tabBar, options )
 		-- Create the tab button
 		viewButtons[i] = display.newImageRect( tabBar, defaultFile, baseDir, width, height )
 		viewButtons[i]._over = display.newImageRect( tabBar, overFile, baseDir, width, height )
+		
 		viewButtons[i]._over.isVisible = false
 		
 		-- Get the passed in properties if any
@@ -107,6 +108,7 @@ local function initWithImageFiles( tabBar, options )
 		
 		-- Create the tab button's label
 		viewButtons[i].label = display.newText( tabBar, label, 0, 0, labelFont, labelSize )
+		viewButtons[i].label.text = label
 		viewButtons[i].label:setTextColor( unpack( labelColor.default ) )
 		
 		-- Set the label offsets
@@ -153,7 +155,15 @@ local function initWithImageFiles( tabBar, options )
 	for i = 1, #viewButtons do
 		-- Set the buttons position
 		viewButtons[i].x = tabBar.x + ( ( opt.width / #viewButtons ) * i ) - ( opt.width / #viewButtons ) / 2
-		viewButtons[i].y = tabBar.y + ( view.contentHeight * 0.5 ) - ( view.contentHeight * 0.1 )
+		viewButtons[i].y = tabBar.y + ( view.contentHeight * 0.5 ) 
+		
+		-- if no label, center the images
+		if nil ~= viewButtons[i].label then
+		    if "" == viewButtons[i].label.text then
+	            viewButtons[i].y = tabBar.y + ( view.contentHeight * 0.5 )
+	        end
+		end
+		
 		viewButtons[i]._over.x = viewButtons[i].x
 		viewButtons[i]._over.y = viewButtons[i].y
 		
@@ -176,6 +186,8 @@ local function initWithImageFiles( tabBar, options )
 	
 	-- Set the default tab to active
 	viewButtons[view._defaultTab]._over.isVisible = true
+	-- hide the default image on the default tab
+	viewButtons[view._defaultTab].isVisible = false
 	
 	-- Position the tab selected group
 	viewSelected.x = viewButtons[view._defaultTab].x - ( viewSelected.contentWidth * 0.5 ) - tabBar.x
@@ -213,7 +225,7 @@ local function initWithImageFiles( tabBar, options )
 	function view:touch( event )
 		local phase = event.phase
 		local tabSize = ( self._width / #self._tabs ) 
-		
+
 		if "began" == phase then
 			-- Loop through the tabs
 			for i = 1, #self._tabs do
@@ -237,7 +249,36 @@ local function initWithImageFiles( tabBar, options )
 		return true
 	end
 	
+    -- Tap listener for the tabBar
+	local function _handleTapEvent( event )
+		local phase = event.phase
+		local tabSize = ( view._width / #view._tabs ) 
+
+		if "tap" == phase then
+			-- Loop through the tabs
+			for i = 1, #view._tabs do
+				local currentTab = view._tabs[i]
+				
+				-- Have we pressed within the current tab?
+				local pressedWithinRange = event.x >= ( currentTab.x - tabSize * 0.5 ) and event.x <= ( currentTab.x + tabSize * 0.5 )
+				
+				-- If we have pressed a tab
+				if pressedWithinRange then
+					-- Activate the tab
+					if not currentTab._isPressed then
+						view:_setSelected( i, true )
+					end
+					
+					break
+				end
+			end
+		end
+		
+		return true
+	end
+	
 	view:addEventListener( "touch" )
+	view:addEventListener( "tap", _handleTapEvent )
 	
 	-- Function to programatically set a tab button as active
 	function tabBar:setSelected( selectedTab, simulatePress )
@@ -311,6 +352,7 @@ end
 
 -- Creates a new tabBar from an imageSheet
 local function initWithImageSheet( tabBar, options )
+
 	-- Create a local reference to our options table
 	local opt = options
 		
@@ -375,16 +417,23 @@ local function initWithImageSheet( tabBar, options )
 		else
 			-- If there isn't a default frame, look for default/over files
 			if not opt.tabButtons[i].defaultFile then
-				error( "ERROR: " .. M._widgetName .. ": tab button default file expected, got nil" )
+			    viewButtons[i] = display.newImageRect( tabBar, imageSheet, 7, 15, 15 )
+				--error( "ERROR: " .. M._widgetName .. ": tab button default file expected, got nil" )
+			else
+			    viewButtons[i] = display.newImageRect( tabBar, opt.tabButtons[i].defaultFile, opt.tabButtons[i].width, opt.tabButtons[i].height )
 			end
 			
 			if not opt.tabButtons[i].overFile then
-				error( "ERROR: " .. M._widgetName .. ": tab button default file expected, got nil" )
+			    viewButtons[i].over = display.newImageRect( tabBar, imageSheet, 10, 15, 15 )
+				--error( "ERROR: " .. M._widgetName .. ": tab button default file expected, got nil" )
+            else
+                viewButtons[i].over = display.newImageRect( tabBar, opt.tabButtons[i].overFile, opt.tabButtons[i].width, opt.tabButtons[i].height )
 			end
+		viewButtons[i].over.isVisible = false
 			
-			viewButtons[i] = display.newImageRect( tabBar, opt.tabButtons[i].defaultFile, opt.tabButtons[i].width, opt.tabButtons[i].height )
-			viewButtons[i].over = display.newImageRect( tabBar, opt.tabButtons[i].overFile, opt.tabButtons[i].width, opt.tabButtons[i].height )
-			viewButtons[i].over.isVisible = false
+
+			
+			
 		end
 		
 		-- Get the passed in properties if any
@@ -512,7 +561,7 @@ local function initWithImageSheet( tabBar, options )
 	function view:touch( event )
 		local phase = event.phase
 		local tabSize = ( self._width / #self._tabs ) 
-		
+
 		if "began" == phase then
 			-- Loop through the tabs
 			for i = 1, #self._tabs do
@@ -536,7 +585,36 @@ local function initWithImageSheet( tabBar, options )
 		return true
 	end
 	
+    -- Tap listener for the tabBar
+	local function _handleTapEvent( event )
+		local phase = event.phase
+		local tabSize = ( view._width / #view._tabs ) 
+
+		if "tap" == phase then
+			-- Loop through the tabs
+			for i = 1, #view._tabs do
+				local currentTab = view._tabs[i]
+				
+				-- Have we pressed within the current tab?
+				local pressedWithinRange = event.x >= ( currentTab.x - tabSize * 0.5 ) and event.x <= ( currentTab.x + tabSize * 0.5 )
+				
+				-- If we have pressed a tab
+				if pressedWithinRange then
+					-- Activate the tab
+					if not currentTab._isPressed then
+						view:_setSelected( i, true )
+					end
+					
+					break
+				end
+			end
+		end
+		
+		return true
+	end
+	
 	view:addEventListener( "touch" )
+	view:addEventListener( "tap", _handleTapEvent )
 	
 	-- Function to programatically set a tab button as active
 	function tabBar:setSelected( selectedTab, simulatePress )
@@ -652,7 +730,14 @@ function M.new( options, theme )
 	opt.tabSelectedRightFile = customOptions.tabSelectedRightFile
 	opt.tabSelectedMiddleFile = customOptions.tabSelectedMiddleFile
 	opt.tabSelectedFrameWidth = customOptions.tabSelectedFrameWidth
-	opt.tabSelectedFrameHeight = customOptions.tabSelectedFrameHeight
+	
+	-- if we get passed a height parameter in the initializer, set the selected frame height to that value
+	if nil ~= customOptions.height and type( customOptions.height ) == "number" then
+		opt.tabSelectedFrameHeight = customOptions.height
+	else
+		opt.tabSelectedFrameHeight = customOptions.tabSelectedFrameHeight
+	end
+	
 	
 	-- If we are using a sheet
 	if not opt.backgroundFile and opt.sheet or not opt.backgroundFile and opt.themeSheetFile then
@@ -663,7 +748,14 @@ function M.new( options, theme )
 		opt.tabSelectedRightFrame = customOptions.tabSelectedRightFrame or _widget._getFrameIndex( themeOptions, themeOptions.tabSelectedRightFrame )
 		opt.tabSelectedMiddleFrame = customOptions.tabSelectedMiddleFrame or _widget._getFrameIndex( themeOptions, themeOptions.tabSelectedMiddleFrame )
 		opt.tabSelectedFrameWidth = customOptions.tabSelectedFrameWidth or themeOptions.tabSelectedFrameWidth
-		opt.tabSelectedFrameHeight = customOptions.tabSelectedFrameHeight or themeOptions.tabSelectedFrameHeight
+		
+		-- if we get passed a height parameter in the initializer, set the selected frame height to that value
+		if nil ~= customOptions.height and type( customOptions.height ) == "number" then
+			opt.tabSelectedFrameHeight = customOptions.height
+		else
+			opt.tabSelectedFrameHeight = customOptions.tabSelectedFrameHeight or themeOptions.tabSelectedFrameHeight
+		end
+		
 	end
 	
 	if opt.backgroundFile then
