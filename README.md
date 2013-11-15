@@ -1,6 +1,8 @@
 # framework-widgets
 ---
 
+NOTE: This version applies to legacy versions of Corona SDK. All active development is happening on a forked version that targets the latest versions of Corona SDK (2013.2000 or greater).
+
 ## Overview
 
 This is the widgets 2.0 Framework for Corona SDK. It contains all the assets, sources and texture source files that you need to use widgets in your own applications.
