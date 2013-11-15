@@ -1,4 +1,4 @@
-# framework-widgets
+# framework-widgets-legacy
 ---
 
 NOTE: This version applies to legacy versions of Corona SDK. All active development is happening on a newer repo targets the latest versions of Corona SDK (2013.2000 or greater).
